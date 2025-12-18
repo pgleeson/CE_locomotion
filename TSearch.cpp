@@ -28,7 +28,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
-
+//#include <cassert>
 
 // An out of memory handler for new
 
@@ -77,6 +77,7 @@ TSearch::TSearch(int VSize, double (*EvalFn)(TVector<double> &, RandomState &))
 	SetSearchConstraint(1);
 	SetReEvaluationFlag(0);
 	SetCheckpointInterval(0);
+	cptfilename = "search.cpt";
 }
 
 
@@ -309,9 +310,12 @@ void TSearch::SetCheckpointInterval(int NewInterval)
 
 void TSearch::DoSearch(int ResumeFlag)
 {
+
 	// Initialize search if necessary
 	if (!SearchInitialized) InitializeSearch();
 	// Make sure we have an evaluation function
+	
+	
 	if (EvaluationFunction == NULL)
 	{
 		cerr << "Error: NULL evaluation function\n";
@@ -319,13 +323,20 @@ void TSearch::DoSearch(int ResumeFlag)
 	}
 	// Unless we're resuming a checkpointed search, evalute the initial population and reset best
 	if (!ResumeFlag) {
+	
 		EvaluatePopulation();
+		//assert(0);
 		BestPerf = -1;
 		UpdateBestFlag = 0;
 	}
+
+	//assert(0);
+	
 	// Update and display statistics of the initial population
 	UpdatePopulationStatistics();
 	DisplayPopulationStatistics();
+
+	
 	// If the best changed and there is a BestActionFunction, invoke it
 	if (UpdateBestFlag && BestActionFunction != NULL)
 		(*BestActionFunction)(Gen,bestVector);
@@ -344,6 +355,7 @@ void TSearch::DoSearch(int ResumeFlag)
 		if ((CheckpointInt > 0) && (Gen > 0) && ((Gen % CheckpointInt) == 0))
 			WriteCheckpointFile();
 	}
+
 	// Display results
 	DisplaySearchResults();
 }
@@ -509,6 +521,9 @@ void *EvaluatePopulationRange(void *arg)
 
 
 // Evaluate the current population, beginning with the STARTth individual
+
+
+
 
 void TSearch::EvaluatePopulation(int start)
 {
@@ -861,12 +876,12 @@ void TSearch::SortPopulation(void)
 //  ...
 //  <RandomState N>
 
-void TSearch::WriteCheckpointFile(void)
+void TSearch::WriteCheckpointFile()
 {
-  ofstream bofs("search.cpt", ios::binary);
+
+	ofstream bofs(cptfilename, ios::binary);
   int i;
   double d;
-    
 	// Write the vector size and population size
   bofs.write((const char*) &(vectorSize), sizeof(vectorSize));
   i = PopulationSize();
@@ -925,12 +940,13 @@ void TSearch::WriteCheckpointFile(void)
   // Write out the random state for each individual in the population
   for (int i = 1; i <= PopulationSize(); i++)
     RandomStates[i].BinaryWriteRandomState(bofs);
+
 }
 
 
-void TSearch::ReadCheckpointFile(void)
+void TSearch::ReadCheckpointFile()
 {
-  ifstream bifs("search.cpt", ios::binary);
+  ifstream bifs(cptfilename, ios::binary);
   int i;
   double d;
   TVector<int> iv;

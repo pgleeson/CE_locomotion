@@ -9,16 +9,18 @@
 #include "random.h"
 #include <iostream>
 #include <math.h>
+#include "neuromlLocal/NervousSystemBase.h"
+#include "utils.h"
 
 #pragma once
 
 
-// An entry in a sparse weight matrix
 
-struct weightentry {int from; double weight;};
 
 
 // The sigmoid function
+
+namespace NS{
 
 inline double sigmoid(double x)
 {
@@ -32,14 +34,18 @@ inline double InverseSigmoid(double y)
 {
   return log(y/(1-y));
 }
-
+}
 
 // The NervousSystem class declaration
 
-class NervousSystem {
+
+
+class NervousSystem : public NervousSystemBase {
+//class NervousSystem : public NervousSystemInt<NervousSystem> {
     public:
         // The constructor
         NervousSystem(int size = 0, int maxchemconns = -1, int maxelecconns = -1);
+        //NervousSystem(int size = 0, int maxchemconns = -1, int maxelecconns = -1);
         // The destructor
         ~NervousSystem();
         
@@ -47,9 +53,9 @@ class NervousSystem {
         int CircuitSize(void) {return size;};
         void SetCircuitSize(int newsize, int maxchemconns, int maxelecconns);
         double NeuronState(int i) {return states[i];};
-        void SetNeuronState(int i, double value) {states[i] = value;outputs[i] = sigmoid(gains[i]*(states[i] + biases[i]));};
+        void SetNeuronState(int i, double value) {states[i] = value;outputs[i] = NS::sigmoid(gains[i]*(states[i] + biases[i]));};
         double NeuronOutput(int i) {return outputs[i];};
-        void SetNeuronOutput(int i, double value) {outputs[i] = value; states[i] = InverseSigmoid(value)/gains[i] - biases[i];};
+        void SetNeuronOutput(int i, double value) {outputs[i] = value; states[i] = NS::InverseSigmoid(value)/gains[i] - biases[i];};
         double NeuronBias(int i) {return biases[i];};
         void SetNeuronBias(int i, double value) {biases[i] = value;};
         double NeuronGain(int i) {return gains[i];};
@@ -58,6 +64,7 @@ class NervousSystem {
         void SetNeuronTimeConstant(int i, double value) {taus[i] = value; Rtaus[i] = 1/value;};
         double NeuronExternalInput(int i) {return externalinputs[i];};
         void SetNeuronExternalInput(int i, double value) {externalinputs[i] = value;};
+        void IncNeuronExternalInput(int i, double value) {externalinputs[i] += value;};
         double ChemicalSynapseWeight(int from, int to);
         void SetChemicalSynapseWeight(int from, int to, double value);
         double ElectricalSynapseWeight(int from, int to);

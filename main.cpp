@@ -4,13 +4,25 @@
 // Eduardo Izquierdo
 // =============================================================
 
+
+
 #include <iostream>
 #include <iomanip>
 #include <math.h>
 #include "TSearch.h"
 #include "VectorMatrix.h"
-#include "Worm.h"
+//#include "Worm.h"
+//#include <vector>
+
+#include "jsonUtils.h"
+
+#include "Mainvars.h"
 #include <stdio.h>
+#include <string.h>
+//#include <sys/stat.h>
+#include "argUtils.h"
+
+SuppliedArgs supArgs1;
 
 #define PRINTTOFILE
 
@@ -38,6 +50,9 @@ const double    NMJmin                  = 0.0;
 
 const int SR_A = 1;
 const int SR_B = 2;
+
+
+
 
 // Size of genotype
 int	VectSize = 17;
@@ -162,29 +177,41 @@ double EvaluationFunction(TVector<double> &v, RandomState &rs){
   // return fitnessBackward;
 }
 
+
+
+
+
 // ------------------------------------
 // Plotting
 // ------------------------------------
 double save_traces(TVector<double> &v, RandomState &rs){
-    ofstream curvfile("curv.dat");
-    ofstream bodyfile("body.dat");
-    ofstream actfile("act.dat");
+    ofstream curvfile(supArgs1.rename_file("curv.dat"));
+    ofstream bodyfile(supArgs1.rename_file("body.dat"));
+    ofstream actfile(supArgs1.rename_file("act.dat"));
     // Genotype-Phenotype Mapping
     TVector<double> phenotype(1, VectSize);
     GenPhenMapping(v, phenotype);
     double sra = phenotype(SR_A);
     double srb = phenotype(SR_B);
+    
+    
     Worm w(phenotype, 1);
-    ofstream phenfile("phenotype.dat");
+   /*  {
+    ofstream phenfile(rename_file("phenotype.dat"));
     w.DumpParams(phenfile);
-
+    phenfile.close();
+    } */
+    
+    //assert(0);
     w.InitializeState(rs);
     w.sr.SR_A_gain = 0.0;
     w.sr.SR_B_gain = srb;
     w.AVA_output =  w.AVA_inact;
     w.AVB_output =  w.AVB_act;
 
-    for (double t = 0.0; t <= Transient + Duration; t += StepSize){
+  
+
+    for (double t = 0.0; t <= Transient + supArgs1.traceDuration; t += StepSize){
         w.Step(StepSize, 1);
         w.DumpBodyState(bodyfile, skip_steps);
         w.DumpCurvature(curvfile, skip_steps);
@@ -223,6 +250,7 @@ double save_traces(TVector<double> &v, RandomState &rs){
          w.DumpActState(actfile, skip_steps);
      }
 
+    
     bodyfile.close();
     curvfile.close();
     actfile.close();
@@ -242,11 +270,14 @@ void ResultsDisplay(TSearch &s)
     TVector<double> bestVector;
     ofstream BestIndividualFile;
     bestVector = s.BestIndividual();
-    BestIndividualFile.open("best.gen.dat");
+    BestIndividualFile.open(supArgs1.rename_file("best.gen.dat"));
     BestIndividualFile << setprecision(32);
     BestIndividualFile << bestVector << endl;
     BestIndividualFile.close();
 }
+
+
+
 
 // ------------------------------------
 // The main program
@@ -255,25 +286,37 @@ int main (int argc, const char* argv[])
 {
     std::cout << std::setprecision(10);
     long randomseed = static_cast<long>(time(NULL));
-    if (argc == 2)
-        randomseed += atoi(argv[1]);
+   
+    if (argc==2) randomseed += atoi(argv[1]);
+
+    if (argc>2) if (!supArgs1.setArgs(argc,argv,randomseed)) return 0;
+ 
+    InitializeBodyConstants();
+
+    if (supArgs1.do_evol){
+
+    supArgs1.doOrigNS = 1;
 
     TSearch s(VectSize);
 
     // save the seed to a file
+
     ofstream seedfile;
-    seedfile.open ("seed.dat");
-    seedfile << randomseed << endl;
+    seedfile.open(supArgs1.rename_file("seed.dat"));
+    seedfile << supArgs1.randomseed << endl;
     seedfile.close();
 
+    supArgs1.writeMessage();
+
+
     // configure the search
-    s.SetRandomSeed(randomseed);
+    s.SetRandomSeed(supArgs1.randomseed);
     s.SetPopulationStatisticsDisplayFunction(EvolutionaryRunDisplay);
     s.SetSearchResultsDisplayFunction(ResultsDisplay);
     s.SetSelectionMode(RANK_BASED);               //{FITNESS_PROPORTIONATE,RANK_BASED}
     s.SetReproductionMode(GENETIC_ALGORITHM);	    // {HILL_CLIMBING, GENETIC_ALGORITHM}
-    s.SetPopulationSize(96);
-    s.SetMaxGenerations(10);
+    s.SetPopulationSize(supArgs1.pop_size);
+    s.SetMaxGenerations(supArgs1.max_gens);
     s.SetMutationVariance(0.05);                   // For 71 parameters, an estimated avg change of 0.25 for weights (mapped to 15).
     s.SetCrossoverProbability(0.5);
     s.SetCrossoverMode(UNIFORM);                  //{UNIFORM, TWO_POINT}
@@ -282,28 +325,78 @@ int main (int argc, const char* argv[])
     s.SetSearchConstraint(1);
     s.SetReEvaluationFlag(0);
   // redirect standard output to a file
+
+     
   #ifdef PRINTTOFILE
       ofstream evolfile;
-      evolfile.open("fitness.dat");
+      evolfile.open (supArgs1.rename_file("fitness.dat"));
+      
+
+      std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
       cout.rdbuf(evolfile.rdbuf());
   #endif
     // Code to run simulation:
-    InitializeBodyConstants();
+    
     s.SetEvaluationFunction(EvaluationFunction);
     s.ExecuteSearch();
 
     #ifdef PRINTTOFILE
+        std::cout.rdbuf(coutbuf); //reset to standard output again
         evolfile.close();
     #endif
 
+    cout << "Finished, now saving the best fit...\n";
+    
+    
     RandomState rs;
     long seed = static_cast<long>(time(NULL));
-    rs.SetRandomSeed(seed);
+    rs.SetRandomSeed(supArgs1.randomseed);
     ifstream Best;
-    Best.open("best.gen.dat");
+    Best.open(supArgs1.rename_file("best.gen.dat"));
     TVector<double> best(1, VectSize);
     Best >> best;
+    
+    TVector<double> phenotype(1, VectSize);
+    GenPhenMapping(best, phenotype);
+    double sra = phenotype(SR_A);
+    double srb = phenotype(SR_B);
+    
+    Worm w(phenotype, 1);
+    {
+    ofstream phenfile(supArgs1.rename_file("phenotype.dat"));
+    w.DumpParams(phenfile);
+    phenfile.close();
+    }
+    
+    w.InitializeState(rs);
+    w.sr.SR_A_gain = 0.0;
+    w.sr.SR_B_gain = srb;
+    w.AVA_output =  w.AVA_inact;
+    w.AVB_output =  w.AVB_act;
+
+    writeParsToJson(w);
+
+    }
+
+    supArgs1.setSimRandomInit();
+    RandomState rs;
+    //long seed = static_cast<long>(time(NULL));
+    rs.SetRandomSeed(supArgs1.randomseed);
+    ifstream Best;
+    Best.open(supArgs1.rename_file("best.gen.dat"));
+    TVector<double> best(1, VectSize);
+    Best >> best;
+    
+    if (supArgs1.do_nml){
+      supArgs1.doOrigNS = 0;
+    cout << "Performing nml run and saving data\n" << endl;
+    }
+    else{
+      supArgs1.doOrigNS = 1;
+    cout << "Performing C++ run and saving data\n" << endl;
+    }
     save_traces(best, rs);
 
+    
     return 0;
 }
