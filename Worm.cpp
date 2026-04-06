@@ -186,9 +186,18 @@ void Worm::Step(double StepSize, double output)
     m.SetDorsalMuscleInput(mi, dorsalInput(1));
   }
 
+  double v1 = NMJ_DA*n.NeuronOutput(nn(DA,1)) + NMJ_DB*n.NeuronOutput(nn(DB,1)) + NMJ_DD*n.NeuronOutput(nn(DD,1));
+  double v2 = NMJ_DA*n.NeuronOutput(nn(DA,2)) + NMJ_DB*n.NeuronOutput(nn(DB,2)) + NMJ_DD*n.NeuronOutput(nn(DD,2));
+  double v12 = NMJ_DA*n.NeuronOutput(nn(DA,2)) + NMJ_DB*n.NeuronOutput(nn(DB,2)) + NMJ_DD*n.NeuronOutput(nn(DD,2))
+  + NMJ_DA*n.NeuronOutput(nn(DA,1)) + NMJ_DB*n.NeuronOutput(nn(DB,1)) + NMJ_DD*n.NeuronOutput(nn(DD,1));
+
+
   mi = 4; // 4th muscle
+  //m.SetVentralMuscleInput(mi, v1 + v2);
   m.SetVentralMuscleInput(mi, (ventralInput(1)+ventralInput(2)));
-  m.SetDorsalMuscleInput(mi, (dorsalInput(1)+dorsalInput(2)));
+  //m.SetDorsalMuscleInput(mi, (dorsalInput(1)+dorsalInput(2)));
+  m.SetDorsalMuscleInput(mi, v1+v2);
+  //m.SetDorsalMuscleInput(mi, v12);
 
   mi = 5; // 5th muscle
   m.SetVentralMuscleInput(mi, ventralInput(2));

@@ -254,7 +254,8 @@ void ResultsDisplay(TSearch &s)
 int main (int argc, const char* argv[])
 {
     std::cout << std::setprecision(10);
-    long randomseed = static_cast<long>(time(NULL));
+    long randomseed_old = static_cast<long>(time(NULL));
+    long randomseed = 0;
     if (argc == 2)
         randomseed += atoi(argv[1]);
 
