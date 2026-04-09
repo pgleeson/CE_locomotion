@@ -8,7 +8,7 @@
 #include "VectorMatrix.h"
 #include "random.h"
 #include <iostream>
-#include <math.h>
+#include <openlibm.h>
 
 #pragma once
 

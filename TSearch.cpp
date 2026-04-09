@@ -23,7 +23,7 @@
 // *******************************************************************************
 
 #include "TSearch.h"
-#include <math.h>
+#include <openlibm.h>
 #include <limits.h>
 #include <iostream>
 #include <fstream>

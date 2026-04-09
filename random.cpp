@@ -6,7 +6,7 @@
 
 #include "random.h"
 #include <stdlib.h>
-#include <math.h>
+#include <openlibm.h>
 #include <iostream>
 
 using namespace std;

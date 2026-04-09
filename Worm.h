@@ -13,7 +13,7 @@
 #include "Muscles.h"
 #include "StretchReceptor.h"
 
-#include <cmath>
+#include <openlibm.h>
 
 #define PI 3.14159265
 

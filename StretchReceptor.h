@@ -9,7 +9,7 @@
 
 #include "VectorMatrix.h"
 #include "random.h"
-#include <cmath>
+#include <openlibm.h>
 using namespace std;
 
 class StretchReceptor {

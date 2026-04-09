@@ -6,7 +6,7 @@
 
 #include <iostream>
 #include <iomanip>
-#include <math.h>
+#include <openlibm.h>
 #include "TSearch.h"
 #include "VectorMatrix.h"
 #include "Worm.h"
