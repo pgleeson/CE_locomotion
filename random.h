@@ -72,5 +72,5 @@ public:
 
   long seed, idum, iy, iv[NTAB];
   int gaussian_flag;
-  double gX1, gX2;
+  double gX1 = 0.0, gX2 = 0.0;
 };

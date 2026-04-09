@@ -167,15 +167,15 @@ class TSearch {
 		// Internal State
     RandomState rs;
     TVector<RandomState> RandomStates;
-		int Gen;
+		int Gen = 0;
 		int SearchInitialized;
 		TVector<TVector<double> > Population;
 		TVector<double> Perf;
 		TVector<double> fitness;
-		int UpdateBestFlag;
+		int UpdateBestFlag = 0;
 		TVector<double> bestVector;
-		double BestPerf;
-		double MinPerf, MaxPerf, AvgPerf, PerfVar;
+		double BestPerf = 0.0;
+		double MinPerf = 0.0, MaxPerf = 0.0, AvgPerf = 0.0, PerfVar = 0.0;
 		// Search Modes
 		TSelectionMode SelectMode;
 		TReproductionMode RepMode;

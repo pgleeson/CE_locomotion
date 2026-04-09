@@ -68,7 +68,7 @@ protected:
 template<class EltType>
 TVector<EltType>::TVector(void) 
 {
-	lb = 1; ub = 0;
+	lb = 1; ub = 0; Vector = nullptr;
 }
 
 
@@ -315,7 +315,7 @@ protected:
 template<class EltType>
 TMatrix<EltType>::TMatrix(void)
 {
-	lb1 = lb2 = 1; ub1 = ub2 = 0; collen = 0; rowlen = 0;
+	lb1 = lb2 = 1; ub1 = ub2 = 0; collen = 0; rowlen = 0; Matrix = nullptr;
 }
 
 
